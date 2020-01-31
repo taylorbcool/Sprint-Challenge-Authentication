@@ -1,9 +1,19 @@
 const jwt = require('jsonwebtoken')
+const bcrypt = require('bcryptjs')
 const router = require('express').Router()
 
 const { jwtSecret } = require('../config/secrets')
+const restricted = require('./authenticate-middleware')
 
 const Users = require('../users/users-model')
+
+router.get('/', restricted, (req, res) => {
+  Users.find()
+    .then(users => {
+      res.json(users);
+    })
+    .catch(err => res.send(err));
+});
 
 router.post('/register', (req, res) => {
   // implement registration
@@ -13,10 +23,10 @@ router.post('/register', (req, res) => {
 
   Users.add(user)
     .then(saved => {
-      res.status(201).json(saved)
+      res.status(201).json({ id: saved.id, username: saved.username})
     })
     .catch(err => {
-      res.status(500).json(err)
+      res.status(500).json({ err: 'error in server' })
     })
 });
 
@@ -35,7 +45,7 @@ router.post('/login', (req, res) => {
       }
     })
     .catch(err => {
-      res.status(500).json(err)
+      res.status(500).json({ err: 'error in server' })
     })
 });
 
